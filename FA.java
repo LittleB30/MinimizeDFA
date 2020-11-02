@@ -254,7 +254,7 @@ public class FA {
     /**
      * Reads an FA from a properly formated file.
      */
-    private void readFA(String fileName) { //FIXME fix reading for new format
+    private void readFA(String fileName) {
         Scanner scan = null;
 		try {
 			scan = new Scanner(new File(fileName));
@@ -265,47 +265,33 @@ public class FA {
         
         numStates = Integer.parseInt(scan.nextLine());
 
-        char[] alpha = scan.nextLine().replaceAll("\\s", "").toCharArray();
+        String curLine = scan.nextLine();
+        char[] alpha = curLine.substring(curLine.indexOf(":")+1).replaceAll("\\s", "").toCharArray();
         for (char a : alpha) alphabets.add(a);
 
-        String curLine;
+        scan.nextLine();
         for (int i = 0; i < numStates; i++) { //for each state
-            curLine = scan.nextLine().trim();
-            int leftIndex = -1;
-            int rightIndex = -1;
+            curLine = scan.nextLine();
+            char[] t = curLine.substring(curLine.indexOf(":")+1).replaceAll("\\s", "").toCharArray();
+            
             ArrayList<ArrayList<Integer>> trans = new ArrayList<>();
-            for (int j = 0; j < curLine.length(); j++) { //find each set of "{}"
-                if (curLine.charAt(j) == '{') {
-                    leftIndex = j;
-                }
-                if (curLine.charAt(j) == '}') {
-                    rightIndex = j;
-                }
-                if (leftIndex != -1 && rightIndex != -1) { //then turn that set into an ArrayList<Integer>
-                    String curSet = curLine.substring(leftIndex+1, rightIndex);
-                    curSet = curSet.replaceAll("\\s", "");
-                    String[] states = curSet.split(",");
-                    ArrayList<Integer> s = new ArrayList<>();
-                    for (String state : states) {
-                        if (!state.equals("")) {
-                            s.add(Integer.valueOf(state));
-                        }
-                    }
-                    trans.add(s); //add that set to this state's transitions
-                    leftIndex = -1;
-                    rightIndex = -1;
-                }
+            for (char s : t) {
+                ArrayList<Integer> state = new ArrayList<>();
+                state.add(Character.getNumericValue(s));
+                trans.add(state);
             }
+
             transitions.add(trans); //add this state's transitions to the total transition function
         }
 
         //read an assign initial state
-        initial = Integer.parseInt(scan.nextLine());
+        scan.nextLine();
+        curLine = scan.nextLine().trim();
+        initial = Integer.parseInt(curLine.substring(0, curLine.indexOf(":")));
 
         //read and assign accepting state(s)
-        String accept = scan.nextLine().replaceAll("\\s", "");
-        accept = accept.substring(1, accept.length()-1);
-        String[] a = accept.split(",");
+        curLine = scan.nextLine().replaceAll("\\s", "");
+        String[] a = curLine.substring(0, curLine.indexOf(":")).split(",");
         for (String state : a) {
             accepting.add(Integer.valueOf(state));
         }
