@@ -1,5 +1,6 @@
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 import java.util.Set;
@@ -233,13 +234,32 @@ public class FA {
     }
 
     /**
+     * Partitions the indistiguishable states together.
      * 
-     * @param distTable
-     * @return
+     * @param distTable a distinguishability table to determine partitions
+     * @return          an arraylist of sets that partitions indistiguishable states together
      */
-    private ArrayList<Set<Integer>> partitionTransitions(int[][] distTable) { //TODO implement partitionTransitions
-        
-        return null;
+    private ArrayList<Set<Integer>> partitionTransitions(int[][] distTable) {
+        ArrayList<Set<Integer>> partitions = new ArrayList<>();
+        boolean[] added = new boolean[distTable.length];
+
+        Set<Integer> cell;
+        for (int row = 0; row < distTable.length; row++) {
+            if (!added[row]) {
+                cell = new HashSet<>();
+                cell.add(row);
+                added[row] = true;
+                for (int col = row + 1; col < distTable.length; col++) {
+                    if (distTable[row][col] == 0) {
+                        cell.add(col);
+                        added[col] = true;
+                    }
+                }
+                partitions.add(cell);
+            }
+        }
+
+        return partitions;
     }
 
     /**
@@ -251,11 +271,11 @@ public class FA {
         int[][] distTable = new int[transitions.size()][transitions.size()];
 
         //fill 1s for states that are simply indistiguishable
-        for (int i = 0; i < distTable.length; i++) {
-            for (int j = i + 1; j < distTable.length; j++) {
-                if (accepting.contains(i) ^ accepting.contains(j)) { //XOR
-                    distTable[i][j] = 1;
-                    distTable[j][i] = 1;
+        for (int row = 0; row < distTable.length; row++) {
+            for (int col = row + 1; col < distTable.length; col++) {
+                if (accepting.contains(row) ^ accepting.contains(col)) { //XOR
+                    distTable[row][col] = 1;
+                    distTable[col][row] = 1;
                 }
             }
         }
@@ -264,12 +284,12 @@ public class FA {
         boolean madeChange;
         do {
             madeChange = false;
-            for (int i = 0; i < distTable.length; i++) {
-                for (int j = i + 1; j < distTable.length; j++) {
-                    if (distTable[i][j] != 1 && isIndistinguishable(i, j, distTable)) {
+            for (int row = 0; row < distTable.length; row++) {
+                for (int col = row + 1; col < distTable.length; col++) {
+                    if (distTable[row][col] != 1 && isIndistinguishable(row, col, distTable)) {
                         madeChange = true;
-                        distTable[i][j] = 1;
-                        distTable[j][i] = 1;
+                        distTable[row][col] = 1;
+                        distTable[col][row] = 1;
                     }
                 }
             }
@@ -279,11 +299,12 @@ public class FA {
     }
 
     /**
+     * Determines if two states are indistinguishable or not.
      * 
-     * @param s1
-     * @param s2
-     * @param distTable
-     * @return
+     * @param s1        state one
+     * @param s2        state two
+     * @param distTable a distinguishability table to evaluate s1 and s2
+     * @return          true if s1 and s2 are indistinguishable, false otherwise
      */
     private boolean isIndistinguishable(int s1, int s2, int[][] distTable) {
         int adjToS1;
@@ -355,7 +376,7 @@ public class FA {
     /**
      * @param state the desired state
      * @param alpha the desired alphabet
-     * @return a string form of the transition function for a given state and alphabet
+     * @return      a string form of the transition function for a given state and alphabet
      */
     private String transitionToString(int state, int alpha) {
         String temp = "{";
