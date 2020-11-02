@@ -153,7 +153,7 @@ public class FA {
     /**
      * Prints the FA based on whether or not it is deterministic.
      */
-    public void printFA() { //FIXME printing may not work
+    public void printFA() {
         if (isNondeterministic) {
             System.out.println("=NFA=");
             System.out.print("Sigma: ");
@@ -243,12 +243,60 @@ public class FA {
     }
 
     /**
+     * Builds a distinguishability table between the current states represented by a matrix where 1 indicates indistinguishable and 0 indicates distinguishable.
      * 
+     * @return a matrix where 1 indicates indistinguishable and 0 indicates distinguishable
+     */
+    private int[][] buildDistinguishabilityTable() {
+        int[][] distTable = new int[transitions.size()][transitions.size()];
+
+        //fill 1s for states that are simply indistiguishable
+        for (int i = 0; i < distTable.length; i++) {
+            for (int j = i + 1; j < distTable.length; j++) {
+                if (accepting.contains(i) ^ accepting.contains(j)) { //XOR
+                    distTable[i][j] = 1;
+                    distTable[j][i] = 1;
+                }
+            }
+        }
+        
+        //contiuously fill 1s for states that are adjacent to indistiguishable states
+        boolean madeChange;
+        do {
+            madeChange = false;
+            for (int i = 0; i < distTable.length; i++) {
+                for (int j = i + 1; j < distTable.length; j++) {
+                    if (distTable[i][j] != 1 && isIndistinguishable(i, j, distTable)) {
+                        madeChange = true;
+                        distTable[i][j] = 1;
+                        distTable[j][i] = 1;
+                    }
+                }
+            }
+        } while (madeChange);
+
+        return distTable;
+    }
+
+    /**
+     * 
+     * @param s1
+     * @param s2
+     * @param distTable
      * @return
      */
-    private int[][] buildDistinguishabilityTable() { //TODO implement buildDistinguishabilityTable
-        
-        return null;
+    private boolean isIndistinguishable(int s1, int s2, int[][] distTable) {
+        int adjToS1;
+        int adjToS2;
+        boolean isIndistinguishable = false;
+        for (int i = 0; i < alphabets.size() && !isIndistinguishable; i++) {
+            adjToS1 = transitions.get(s1).get(i).get(0);
+            adjToS2 = transitions.get(s2).get(i).get(0);
+            if (distTable[adjToS1][adjToS2] == 1) {
+                isIndistinguishable = true;
+            }
+        }
+        return isIndistinguishable;
     }
     
     /**
