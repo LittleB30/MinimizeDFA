@@ -1,6 +1,7 @@
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 import java.util.Set;
@@ -224,20 +225,55 @@ public class FA {
     }
 
     /**
+     * Minimizes a set of partitions into a list of transitions.
      * 
-     * @param partitions
-     * @return
+     * @param partitions    the set of partitions minimize into a list of transitions
+     * @return              a list of transitions that have been minimized
      */
-    private ArrayList<ArrayList<ArrayList<Integer>>> minimizePartitions(ArrayList<Set<Integer>> partitions) { // TODO implement minimizePartitions
-        
-        return null;
+    private ArrayList<ArrayList<ArrayList<Integer>>> minimizePartitions(ArrayList<Set<Integer>> partitions) { 
+        ArrayList<ArrayList<ArrayList<Integer>>> minPartitions = new ArrayList<>();
+
+        for (int i = 0; i < partitions.size(); i++) {
+            ArrayList<ArrayList<Integer>> trans = new ArrayList<>();
+            int from = partitions.get(i).iterator().next();
+            for (int j = 0; j < alphabets.size(); j++) {
+                ArrayList<Integer> states = new ArrayList<>();
+                states.add(stateOf(transitions.get(from).get(j).get(0), partitions));
+                trans.add(states);
+            }
+            minPartitions.add(trans);
+        }
+
+        return minPartitions;
     }
 
     /**
-     * Partitions the indistiguishable states together.
+     * Finds the location of a state within the partitions.
+     * 
+     * @param state         the state to search for
+     * @param partitions    the set of partitions to search through
+     * @return              the index of the state if found, -1 otherwise
+     */
+    private int stateOf(int state, ArrayList<Set<Integer>> partitions) {
+        int find = -1;
+
+        for (int i = 0; i < partitions.size() && find == -1; i++) {
+            Iterator<Integer> it = partitions.get(i).iterator();
+            while (it.hasNext() && find == -1) {
+                if (it.next() == state) {
+                    find = i;
+                }
+            }
+        }
+
+        return find;
+    }
+
+    /**
+     * Partitions the indistinguishable states together.
      * 
      * @param distTable a distinguishability table to determine partitions
-     * @return          an arraylist of sets that partitions indistiguishable states together
+     * @return          an arraylist of sets that partitions inddistinguishable states together
      */
     private ArrayList<Set<Integer>> partitionTransitions(int[][] distTable) {
         ArrayList<Set<Integer>> partitions = new ArrayList<>();
