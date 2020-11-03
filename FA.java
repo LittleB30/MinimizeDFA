@@ -66,20 +66,28 @@ public class FA {
     }
 
     /*********** PUBLIC METHODS ***********/
+    /**
+     * Minimizes the current DFA.
+     * 
+     * @return a minimized DFA equivalent to the current DFA, null if isNondeterministic
+     */
     public FA minimizeDFA(){
-        FA minDFA = new FA();
+        FA minDFA = null;
+        if (!isNondeterministic) {
+            minDFA = new FA();
 
-        //find partitions and build the minimized transition table
-        int[][] distTable = buildDistinguishabilityTable();
-        ArrayList<Set<Integer>> partitions = partitionTransitions(distTable);
-        ArrayList<ArrayList<ArrayList<Integer>>> minTransitions = minimizePartitions(partitions);
+            //find partitions and build the minimized transition table
+            int[][] distTable = buildDistinguishabilityTable();
+            ArrayList<Set<Integer>> partitions = partitionTransitions(distTable);
+            ArrayList<ArrayList<ArrayList<Integer>>> minTransitions = minimizePartitions(partitions);
 
-        //initialize the new FA with the minimized transition table
-        minDFA.numStates = minTransitions.size();
-        minDFA.alphabets = new ArrayList<>(this.alphabets);
-        minDFA.transitions = minTransitions;
-        minDFA.initial = findInitialState(partitions);
-        minDFA.accepting = findAcceptingStates(partitions);
+            //initialize the new FA with the minimized transition table
+            minDFA.numStates = minTransitions.size();
+            minDFA.alphabets = new ArrayList<>(this.alphabets);
+            minDFA.transitions = minTransitions;
+            minDFA.initial = findInitialState(partitions);
+            minDFA.accepting = findAcceptingStates(partitions);
+        }
 
         return minDFA;
     }
@@ -115,7 +123,8 @@ public class FA {
     }
 
     /**
-     * Reads strings from a file and outputs if they are a sentence of this DFA. Note: all false if NFA
+     * Reads strings from a file and outputs if they are a sentence of this DFA. Note: all false if NFA.
+     * 
      * @param fileName the file to be read from
      */
     public void areSentences(String fileName, int numStrings) {
@@ -137,7 +146,7 @@ public class FA {
             }
         } catch (NoSuchElementException e) {}
 
-        System.out.println("Parsing results of strings in " + fileName + " on DFA:");
+        System.out.println("Parsing results of strings in " + fileName + ":");
         int count = 1;
         for (boolean cur : areSentences) {
             System.out.print((cur?"Yes ":"No  "));
@@ -157,7 +166,7 @@ public class FA {
      */
     public void printFA() {
         if (isNondeterministic) {
-            System.out.println("=NFA=");
+            //System.out.println("=NFA=");
             System.out.print("Sigma: ");
             for (Character c : alphabets) System.out.print(c + " ");
             System.out.print("\n------");
@@ -173,7 +182,7 @@ public class FA {
             System.out.print("------");
             for (int i = 0; i < alphabets.size(); i++) System.out.print("--");
         } else {
-            System.out.println("=DFA=");
+            //System.out.println("=DFA=");
             System.out.print("Sigma:\t");
             for (Character c : alphabets) System.out.print(c + "\t");
             System.out.print("\n---------");
@@ -205,23 +214,30 @@ public class FA {
 
     /***********PRIVATE METHODS***********/
     /**
+     * Finds the accepting state(s) of the minimized transitions.
      * 
-     * @param partitions
-     * @return
+     * @param partitions the set of partitions to search through
+     * @return a list of the accepting states whithing the set of partitions
      */
-    private ArrayList<Integer> findAcceptingStates(ArrayList<Set<Integer>> partitions) { //TODO implement findAcceptingStates
-
-        return null;
+    private ArrayList<Integer> findAcceptingStates(ArrayList<Set<Integer>> partitions) {
+        ArrayList<Integer> accept = new ArrayList<>();
+        for (int a : accepting) {
+            int fin = stateOf(a, partitions);
+            if (!accept.contains(fin)) {
+                accept.add(fin);
+            }
+        }
+        return accept;
     }
 
     /**
+     * Finds the initial state of the minimized transitions.
      * 
-     * @param partitions
-     * @return
+     * @param partitions the set of partitions to search through
+     * @return the state containing the initial state within the set of partitions
      */
-    private int findInitialState(ArrayList<Set<Integer>> partitions) {//TODO implement findInitialState
-        
-        return 0;
+    private int findInitialState(ArrayList<Set<Integer>> partitions) {
+        return stateOf(initial, partitions);
     }
 
     /**
@@ -357,7 +373,7 @@ public class FA {
     }
     
     /**
-     * Reads an FA from a properly formated file.
+     * Reads an FA from a properly formatted file.
      */
     private void readFA(String fileName) {
         Scanner scan = null;

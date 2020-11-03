@@ -9,12 +9,12 @@ public class DFA {
         // }
         // String faFile = args[0];
         // String stringsFile = args[1];
-        String faFile = "dfaX";
+        String faFile = "dfaA";
         String stringsFile = "strings.txt";
         FA dfa = new FA(faFile);
-        dfa.printFA();
         FA minDFA = dfa.minimizeDFA();
-        // minDFA.printFA();
-        // minDFA.areSentences(stringsFile, 30);
+        System.out.println("=Minimized DFA from " + faFile + "=");
+        minDFA.printFA();
+        minDFA.areSentences(stringsFile, 30);
     }
 }
